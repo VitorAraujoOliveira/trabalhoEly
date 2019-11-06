@@ -15,6 +15,9 @@ import 'package:sqflite/sqflite.dart';
 
 import 'package:projeto_novo/model/CardapioLista.dart';
 
+
+
+
 class Cardapio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -213,7 +216,7 @@ class CardapioList extends StatelessWidget{
 
 
 
-    List allItems = new List();
+
 
 
 //  allItems = [{'id': 0, 'pedido': 'Picanha Acebolada' , 'valor': 70.96, 'mesa': 1, 'imagem': 'picanha.png'},
@@ -222,18 +225,6 @@ class CardapioList extends StatelessWidget{
 //   {'id': 3, 'pedido': 'Suco de Morango', 'valor': 8.5, 'mesa': 1, 'imagem': 'suco_morango.png'},
 //   {'id': 4, 'pedido': 'Cerveja Skol', 'valor': 6.5, 'mesa': 1, 'imagem': 'skol.png'}];
 
-
-    // Future<void> pegaDados() async{
-    //   var itens = await geraCardapio();
-      
-    //   for (var i = 0; i < itens.length; i++) {
-    //     print((itens[i].toMap()));
-    //     allItems.add(itens[i].toMap());
-    //   }
-
-    // }
-    // pegaDados();
-    // print(allItems);
 
 
     Future<dynamic> pegaDados() async{
@@ -244,42 +235,57 @@ class CardapioList extends StatelessWidget{
 
 
 
-    
+    return FutureBuilder(
+          future: pegaDados(),
+          builder: (context, snapshot){
+            if(snapshot.connectionState == ConnectionState.done){
+              print(snapshot.data);
+              var objeto = [];
 
-    return FutureBuilder<dynamic>(
-      future: pegaDados(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        print(snapshot.data);
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-            return Text('Uninitialized');
-          case ConnectionState.active:
-          case ConnectionState.waiting:
-            return Text('Awaiting result...');
-          case ConnectionState.done:
-            print(pegaDados());
-            if (snapshot.hasError){
+              for (var i in snapshot.data) {
+                objeto.add(i);
+              }
+              
+              print(objeto);
+              return Container(
+                  child: ListView.builder(
+                itemCount: objeto.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    leading: Image.asset("assets/"+ objeto[index]['imagem'], fit: BoxFit.contain,),
+                    title: Text(objeto[index]['pedido']),
+                    trailing: Text(objeto[index]['valor'].toString()),
+                  );
+                },
+                  ),
+              );
+            }
+            else if(snapshot.hasError){
               throw snapshot.error;
             }
-              
-            return ListView.builder(
-              itemCount: allItems.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: Image.asset("assets/"+ snapshot.data, fit: BoxFit.contain,),
-                  title: Text(snapshot.data.toString()),
-                  trailing: Text(allItems[index]['valor'].toString()),
-                  onTap: (){
-                    inserttPedido(allItems[index]);
-                  },
-                );
-              },
-            );
-        }
-        return null; // unreachable
-      });
+            else{
+              return Center(child: CircularProgressIndicator());
+            }
+          },
+        );
+
   
    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
