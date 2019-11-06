@@ -249,6 +249,7 @@ class CardapioList extends StatelessWidget{
     return FutureBuilder<dynamic>(
       future: pegaDados(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
+        print(snapshot.data);
         switch (snapshot.connectionState) {
           case ConnectionState.none:
             return Text('Uninitialized');
@@ -265,8 +266,8 @@ class CardapioList extends StatelessWidget{
               itemCount: allItems.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  leading: Image.asset("assets/"+ allItems[index]['imagem'], fit: BoxFit.contain,),
-                  title: Text(allItems[index]['pedido']),
+                  leading: Image.asset("assets/"+ snapshot.data, fit: BoxFit.contain,),
+                  title: Text(snapshot.data.toString()),
                   trailing: Text(allItems[index]['valor'].toString()),
                   onTap: (){
                     inserttPedido(allItems[index]);
