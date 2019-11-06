@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:path/path.dart';
+import 'package:projeto_novo/model/PedidosLista.dart';
 import 'package:sqflite/sqflite.dart';
 
 
@@ -62,6 +63,111 @@ class Pedidos extends StatelessWidget {
 
 class PedidoList extends StatelessWidget{
    Widget build(BuildContext context){
-     return ListView();
+
+      final Future<Database> database = openDatabase('restaurante.db');
+
+      Future<List<PedidosLista>> geraPedidos() async {
+        // Get a reference to the database.
+        final Database db = await database;
+
+        // Query the table for all The Dogs.
+        final List<Map<String, dynamic>> maps = await db.query('pedidos');
+
+        // Convert the List<Map<String, dynamic> into a List<Dog>.
+        return List.generate(maps.length, (i) {
+          return PedidosLista(
+            id: maps[i]['id'],
+            pedido: maps[i]['pedido'],
+            valor: maps[i]['valor'],
+            mesa: maps[i]['mesa'],
+            imagem: maps[i]['imagem'],
+          );
+        });
+      }
+
+
+
+    Future<void> alteraPedido(PedidosLista pedidos) async{
+      // Get a reference to the database.
+      final Database db = await database;
+
+      // Insert the Dog into the correct table. You might also specify the 
+      // `conflictAlgorithm` to use in case the same dog is inserted twice. 
+      // 
+      // In this case, replace any previous data.
+      await db.insert(
+        'pedidos',
+        pedidos.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+
+    }
+
+      Future<void> deletaPedido(PedidosLista pedidos) async{
+      // Get a reference to the database.
+      final Database db = await database;
+
+      // Insert the Dog into the correct table. You might also specify the 
+      // `conflictAlgorithm` to use in case the same dog is inserted twice. 
+      // 
+      // In this case, replace any previous data.
+      await db.insert(
+        'pedidos',
+        pedidos.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+
+    }
+    
+
+
+
+    Future<dynamic> pegaDados() async{
+      var allItems = await geraPedidos();
+
+      return allItems.map((allItems) => allItems.toMap());
+    }
+
+
+
+    return FutureBuilder(
+          future: pegaDados(),
+          builder: (context, snapshot){
+            if(snapshot.connectionState == ConnectionState.done){
+              print(snapshot.data);
+              var objeto = [];
+
+              for (var i in snapshot.data) {
+                objeto.add(i);
+              }
+              
+              print(objeto);
+              return Container(
+                  child: ListView.builder(
+                itemCount: objeto.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    leading: Image.asset("assets/"+ objeto[index]['imagem'], fit: BoxFit.contain,),
+                    title: Text(objeto[index]['pedido']),
+                    trailing: Text(objeto[index]['valor'].toString()),
+                    onTap: (){
+                      print("aqui"+index.toString());
+                    },
+                  );
+                },
+                  ),
+              );
+            }
+            else if(snapshot.hasError){
+              throw snapshot.error;
+            }
+            else{
+              return Center(child: CircularProgressIndicator());
+            }
+          },
+        );
+
+
+
    }
 }

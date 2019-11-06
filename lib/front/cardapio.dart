@@ -80,9 +80,8 @@ class CardapioList extends StatelessWidget{
     'restaurante.db',
     onCreate: (db, version) {
       // Run the CREATE TABLE statement on the database.
-      return db.execute(
-        "CREATE TABLE cardapio(id INTEGER PRIMARY KEY, pedido TEXT, valor DOUBLE, mesa INTEGER, imagem TEXT); CREATE TABLE pedidos(id INTEGER PRIMARY KEY, prato TEXT, preco DOUBLE, mesa INTEGER, imagem TEXT);",
-      );
+      db.execute("CREATE TABLE pedidos(id INTEGER PRIMARY KEY, prato TEXT, preco DOUBLE, mesa INTEGER, imagem TEXT);");
+      return db.execute("CREATE TABLE cardapio(id INTEGER PRIMARY KEY, pedido TEXT, valor DOUBLE, mesa INTEGER, imagem TEXT);");
 
     },
     version: 1,
@@ -113,17 +112,14 @@ class CardapioList extends StatelessWidget{
   }
 
   Future<void> inserttPedido(PedidosLista pedidos) async{
-    // Get a reference to the database.
     final Database db = await database;
 
-    // Insert the Dog into the correct table. You might also specify the 
-    // `conflictAlgorithm` to use in case the same dog is inserted twice. 
-    // 
-    // In this case, replace any previous data.
+
+    print(pedidos);
     await db.insert(
-      'pedido',
+      'pedidos',
       pedidos.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
 
   }
@@ -255,6 +251,10 @@ class CardapioList extends StatelessWidget{
                     leading: Image.asset("assets/"+ objeto[index]['imagem'], fit: BoxFit.contain,),
                     title: Text(objeto[index]['pedido']),
                     trailing: Text(objeto[index]['valor'].toString()),
+                    onTap: () async{
+                      print(objeto[index]);
+                      await inserttPedido(objeto[index]);
+                    },
                   );
                 },
                   ),
