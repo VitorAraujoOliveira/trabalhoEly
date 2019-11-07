@@ -18,9 +18,6 @@ class Pedidos extends StatelessWidget {
       appBar: AppBar(title: Text("Pedidos"),backgroundColor: Color(0xffCD3301),),
       body: PedidoList(),
       drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
         child: ListView(
           // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
@@ -47,6 +44,10 @@ class Pedidos extends StatelessWidget {
               title: Text('Pedidos'),
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Pedidos()),
+                );
               },),
             ListTile(
               title: Text('Sair'),
@@ -57,14 +58,35 @@ class Pedidos extends StatelessWidget {
           ],
         ),
       ),
+      persistentFooterButtons: <Widget>[
+        new FlatButton(
+          child: new Text("Fechar Conta"),
+          onPressed: () {print("11");},
+        ),
+        new FlatButton(
+          child: new Icon(Icons.monetization_on),
+          onPressed: () {print("11");},
+        ),
+      ],
     );
   }
 }
 
 class PedidoList extends StatelessWidget{
+      final Future<Database> database = openDatabase('restaurante.db');
+
+      Future<void> pegaValor() async {
+        final Database db = await database;
+        await db.rawQuery('SELECT sum(valor) from pedidos where mesa = 1');
+      }
+
+
    Widget build(BuildContext context){
 
+      
       final Future<Database> database = openDatabase('restaurante.db');
+
+
 
       Future<List<PedidosLista>> geraPedidos() async {
         // Get a reference to the database.
@@ -87,14 +109,11 @@ class PedidoList extends StatelessWidget{
 
 
 
+
+
     Future<void> alteraPedido(PedidosLista pedidos) async{
       // Get a reference to the database.
       final Database db = await database;
-
-      // Insert the Dog into the correct table. You might also specify the 
-      // `conflictAlgorithm` to use in case the same dog is inserted twice. 
-      // 
-      // In this case, replace any previous data.
       await db.insert(
         'pedidos',
         pedidos.toMap(),
@@ -103,18 +122,16 @@ class PedidoList extends StatelessWidget{
 
     }
 
-      Future<void> deletaPedido(PedidosLista pedidos) async{
+      Future<void> deletaPedido(int id) async{
       // Get a reference to the database.
       final Database db = await database;
 
-      // Insert the Dog into the correct table. You might also specify the 
-      // `conflictAlgorithm` to use in case the same dog is inserted twice. 
-      // 
-      // In this case, replace any previous data.
-      await db.insert(
+      await db.delete(
         'pedidos',
-        pedidos.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.ignore,
+        // Use a `where` clause to delete a specific dog.
+        where: "id = ?",
+        // Pass the Dog's id as a whereArg to prevent SQL injection.
+        whereArgs: [id],
       );
 
     }
@@ -124,8 +141,9 @@ class PedidoList extends StatelessWidget{
 
     Future<dynamic> pegaDados() async{
       var allItems = await geraPedidos();
-
-      return allItems.map((allItems) => allItems.toMap());
+      
+      var retorno = allItems.map((allItems) => allItems.toMap());
+      return retorno;
     }
 
 
@@ -134,29 +152,38 @@ class PedidoList extends StatelessWidget{
           future: pegaDados(),
           builder: (context, snapshot){
             if(snapshot.connectionState == ConnectionState.done){
-              print(snapshot.data);
+              //print("valor total = "+valFin.toString());
               var objeto = [];
 
               for (var i in snapshot.data) {
                 objeto.add(i);
               }
               
-              print(objeto);
               return Container(
-                  child: ListView.builder(
-                itemCount: objeto.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Image.asset("assets/"+ objeto[index]['imagem'], fit: BoxFit.contain,),
-                    title: Text(objeto[index]['pedido']),
-                    trailing: Text(objeto[index]['valor'].toString()),
-                    onTap: (){
-                      print("aqui"+index.toString());
+                child: ListView.builder(
+                    itemCount: objeto.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Image.asset("assets/"+ objeto[index]['imagem'], fit: BoxFit.contain,),
+                        title: Text(objeto[index]['pedido']),
+                        trailing: Text(objeto[index]['valor'].toString()),
+                        onTap: () async{
+                          var valTotal = pegaValor();
+                          print("aqui "+valTotal.toString());
+                        },
+                        onLongPress: () {
+                          deletaPedido(objeto[index]['id']);
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => Pedidos()),
+                          );
+                        },
+                      );
                     },
-                  );
-                },
                   ),
               );
+              
             }
             else if(snapshot.hasError){
               throw snapshot.error;

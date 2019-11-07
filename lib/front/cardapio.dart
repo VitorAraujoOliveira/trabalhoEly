@@ -28,11 +28,7 @@ class Cardapio extends StatelessWidget {
       appBar: AppBar(title: Text("Cardápio"),backgroundColor: Color(0xffCD3301),),
       body: CardapioList(),
       drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
         child: ListView(
-          // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
@@ -100,10 +96,6 @@ class CardapioList extends StatelessWidget{
     // Get a reference to the database.
     final Database db = await database;
 
-    // Insert the Dog into the correct table. You might also specify the 
-    // `conflictAlgorithm` to use in case the same dog is inserted twice. 
-    // 
-    // In this case, replace any previous data.
     await db.insert(
       'cardapio',
       cardapio.toMap(),
@@ -174,7 +166,6 @@ class CardapioList extends StatelessWidget{
     imagem: 'refri.png',
   );
 
-  //inserttCardapio(fido);
 
 
 
